@@ -1,0 +1,479 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+/// Notes
+/// Currently can't enforce one to mandatory many relationships
+
+/// Level A (no foreign keys)
+
+model SourceType {
+    id   Int    @id @default(autoincrement())
+    type String @unique
+
+    sources Source[]
+}
+
+model Credit {
+    id      Int     @id @default(autoincrement())
+    name    String  @unique
+    logoURI String?
+
+    sources Source[]
+}
+
+model NameProvenance {
+    id   Int    @id @default(autoincrement())
+    type String @unique
+
+    articleNames ArticleName[]
+    partNames    PartName[]
+}
+
+model NameForm {
+    id   Int    @id @default(autoincrement())
+    type String @unique
+
+    articleNames ArticleName[]
+    partNames    PartName[]
+}
+
+model Article {
+    id              Int    @id @default(autoincrement())
+    editorialLetter String
+    editorialNumber String
+
+    articleNames     ArticleName[]
+    articleVersions  ArticleVersion[]
+    articleMirocards ArticleMirocard[]
+
+    @@unique([editorialLetter, editorialNumber])
+}
+
+model Stand {
+    id               Int     @id @default(autoincrement())
+    description      String?
+    rhinoAssetId     String?
+    groundElevationM Float?
+
+    records Record[]
+}
+
+model ColorClass {
+    id          Int     @id @default(autoincrement())
+    name        String
+    description String?
+    colorTheme  String?
+
+    schemes Scheme[]
+}
+
+model Unit {
+    id               Int     @id @default(autoincrement())
+    editorialCode    String  @unique
+    description      String  @unique
+    displayOrder     String  @unique
+    displayedInCombo Boolean
+
+    partUnits PartUnit[]
+}
+
+model Mirocard {
+    id              Int      @id @default(autoincrement())
+    miroId          Int      @unique
+    title           String   @db.Xml
+    description     String   @db.Xml
+    x               Decimal  @db.Decimal(30, 15)
+    y               Decimal  @db.Decimal(30, 15)
+    backgroundColor String
+    createdAt       DateTime @db.Timestamptz(0)
+    createdByName   String
+    modifiedAt      DateTime @db.Timestamptz(0)
+    modifiedByName  String
+
+    articleMirocards ArticleMirocard[]
+    thingMirocards   ThingMirocard[]
+}
+
+model Thing {
+    id      Int     @id @default(autoincrement())
+    summary String?
+
+    assignments     Assignment[]
+    sameThings_iw_1 SameThing[]     @relation("sameThings_iw_1")
+    sameThings_iw_2 SameThing[]     @relation("sameThings_iw_2")
+    thingMiroCards  ThingMirocard[]
+}
+
+model EventType {
+    id   Int    @id @default(autoincrement())
+    type String
+
+    events Event[]
+}
+
+model Feature {
+    id   Int    @id @default(autoincrement())
+    name String @unique
+
+    partFeatures PartFeature[]
+    developments Development[]
+}
+
+//model CRSType
+
+/// Level B
+
+model Source {
+    id         Int     @id @default(autoincrement())
+    mediaURI   String
+    commentary String?
+
+    sourceType   SourceType @relation(fields: [sourceTypeId], references: [id])
+    sourceTypeId Int
+    credit       Credit     @relation(fields: [creditId], references: [id])
+    creditId     Int
+
+    articleNameSources ArticleNameSource[]
+    assignmentSources  AssignmentSource[]
+    recordSources      RecordSource[]
+}
+
+model ArticleName {
+    id   Int    @id @default(autoincrement())
+    name String
+
+    article          Article        @relation(fields: [articleId], references: [id])
+    articleId        Int
+    nameProvenance   NameProvenance @relation(fields: [nameProvenanceId], references: [id])
+    nameProvenanceId Int
+    nameForm         NameForm       @relation(fields: [nameFormId], references: [id])
+    nameFormId       Int
+
+    articleNameSources ArticleNameSource[]
+}
+
+model Scheme {
+    id                Int     @id @default(autoincrement())
+    description       String  @unique
+    diagramAsset2dURI String?
+    diagramAsset3dURI String?
+
+    colorClass   ColorClass @relation(fields: [colorClassId], references: [id])
+    colorClassId Int
+
+    articleVersions ArticleVersion[]
+    parts           Part[]
+}
+
+model ArticleMirocard {
+    id Int @id @default(autoincrement())
+
+    article    Article  @relation(fields: [articleId], references: [id])
+    articleId  Int
+    mirocard   Mirocard @relation(fields: [mirocardId], references: [id])
+    mirocardId Int
+}
+
+model ThingMirocard {
+    id Int @id @default(autoincrement())
+
+    thing      Thing    @relation(fields: [thingId], references: [id])
+    thingId    Int
+    mirocard   Mirocard @relation(fields: [mirocardId], references: [id])
+    mirocardId Int
+}
+
+//model CRS
+
+/// Level C
+
+model ArticleNameSource {
+    id Int @id @default(autoincrement())
+
+    source        Source      @relation(fields: [sourceId], references: [id])
+    sourceId      Int
+    articleName   ArticleName @relation(fields: [articleNameId], references: [id])
+    articleNameId Int
+}
+
+model ArticleVersion {
+    id                Int     @id @default(autoincrement())
+    editorialSuffix   String  @default("")
+    diagramAsset3dURI String?
+
+    article   Article @relation(fields: [articleId], references: [id])
+    articleId Int
+    scheme    Scheme? @relation(fields: [schemeId], references: [id])
+    schemeId  Int?
+
+    assignments Assignment[]
+
+    @@unique([editorialSuffix, articleId])
+}
+
+model SameThing {
+    id         Int     @id @default(autoincrement())
+    confidence Decimal @db.Decimal(3, 2)
+
+    thing1   Thing @relation(name: "sameThings_iw_1", fields: [thingId1], references: [id])
+    thingId1 Int
+    thing2   Thing @relation(name: "sameThings_iw_2", fields: [thingId2], references: [id])
+    thingId2 Int
+}
+
+model Part {
+    id                Int     @id @default(autoincrement())
+    description       String  @unique
+    editorialCode     String?
+    rhinoAssetId      String?
+    markerAsset2dURI  String?
+    diagramAsset2dURI String?
+    diagramAsset3dURI String?
+
+    scheme   Scheme? @relation(fields: [schemeId], references: [id])
+    schemeId Int?
+
+    assignments              Assignment[]
+    records_iw_observed      Record[]
+    partFeatures             PartFeature[]
+    mates_iw_static          Mate[]        @relation("mates_iw_static")
+    mates_iw_added           Mate[]        @relation("mates_iw_added")
+    mates_iw_new             Mate[]        @relation("mates_iw_new")
+    abstractions_iw_generic  Abstraction[] @relation("abstractions_iw_generic")
+    abstractions_iw_specific Abstraction[] @relation("abstractions_iw_specific")
+    partUnits                PartUnit[]
+    partNames                PartName[]
+}
+
+model Position {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    r          Int?     @default(0)
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    //point Point
+    //z     Decimal
+
+    records Record[]
+}
+
+model VaguePosition {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    // polygon Polygon
+
+    // crs     CRS
+    // crsId   int
+
+    recordFuzzes RecordVaguePosition[]
+}
+
+//model Coordinate
+
+/// Level D
+
+model Assignment {
+    id         Int      @id @default(autoincrement())
+    confidence Decimal  @db.Decimal(3, 2)
+    labelTexts String?  @db.Xml
+    c_when     DateTime @db.Timestamptz(0)
+
+    thing            Thing           @relation(fields: [thingId], references: [id])
+    thingId          Int
+    articleVersion   ArticleVersion? @relation(fields: [articleVersionId], references: [id])
+    articleVersionId Int?
+    part             Part?           @relation(fields: [partId], references: [id])
+    partId           Int?
+
+    assignmentSources  AssignmentSource[]
+    records            Record[]           @relation("records")
+    records_iw_startOn Record[]           @relation("records_iw_startOn")
+    records_iw_endOn   Record[]           @relation("records_iw_endOn")
+    records_iw_newPart Record[]           @relation("records_iw_newPart")
+}
+
+model PartName {
+    id   Int    @id @default(autoincrement())
+    name String
+
+    part             Part           @relation(fields: [partId], references: [id])
+    partId           Int
+    nameProvenance   NameProvenance @relation(fields: [nameProvenanceId], references: [id])
+    nameProvenanceId Int
+    nameForm         NameForm       @relation(fields: [nameFormId], references: [id])
+    nameFormId       Int
+}
+
+model PartFeature {
+    id    Int  @id @default(autoincrement())
+    count Int? /// null shall be used to mean uncounted
+
+    part      Part?    @relation(fields: [partId], references: [id])
+    partId    Int?
+    feature   Feature? @relation(fields: [featureId], references: [id])
+    featureId Int?
+}
+
+model PartUnit {
+    id          Int @id @default(autoincrement())
+    numerator   Int
+    denominator Int @default(1)
+
+    part   Part @relation(fields: [partId], references: [id])
+    partId Int
+    unit   Unit @relation(fields: [unitId], references: [id])
+    unitId Int
+
+    @@unique([partId, unitId])
+}
+
+model Mate {
+    id Int @id @default(autoincrement())
+
+    static_part   Part  @relation(name: "mates_iw_static", fields: [static_partId], references: [id])
+    static_partId Int
+    added_part    Part  @relation(name: "mates_iw_added", fields: [added_partId], references: [id])
+    added_partId  Int
+    new_part      Part? @relation(name: "mates_iw_new", fields: [new_partId], references: [id])
+    new_partId    Int?
+}
+
+model Abstraction {
+    id Int @id @default(autoincrement())
+
+    generic_part    Part @relation(name: "abstractions_iw_generic", fields: [generic_partId], references: [id])
+    generic_partId  Int
+    specific_part   Part @relation(name: "abstractions_iw_specific", fields: [specific_partId], references: [id])
+    specific_partId Int
+}
+
+/// Level E
+
+model AssignmentSource {
+    id Int @id @default(autoincrement())
+
+    source       Source     @relation(fields: [sourceId], references: [id])
+    sourceId     Int
+    assignment   Assignment @relation(fields: [assignmentId], references: [id])
+    assignmentId Int
+}
+
+model Record {
+    id           Int      @id @default(autoincrement())
+    when         DateTime @db.Timestamptz(0)
+    earliest     DateTime @db.Timestamptz(0)
+    latest       DateTime @db.Timestamptz(0)
+    smoothToNext Boolean
+    live         Boolean
+    note         String?
+
+    assignment           Assignment  @relation(name: "records", fields: [assignmentId], references: [id])
+    assignmentId         Int
+    startOn_assignment   Assignment? @relation(name: "records_iw_startOn", fields: [startOn_assignmentId], references: [id])
+    startOn_assignmentId Int?
+    endOn_assignment     Assignment? @relation(name: "records_iw_endOn", fields: [endOn_assignmentId], references: [id])
+    endOn_assignmentId   Int?
+    newPart_assignment   Assignment? @relation(name: "records_iw_newPart", fields: [newPart_assignmentId], references: [id])
+    newPart_assignmentId Int?
+    observed_part        Part?       @relation(fields: [observed_partId], references: [id])
+    observed_partId      Int?
+    stand                Stand?      @relation(fields: [standId], references: [id])
+    standId              Int?
+    position             Position    @relation(fields: [positionId], references: [id])
+    positionId           Int
+
+    recordSources              RecordSource[]
+    events                     Event[]
+    developments               Development[]         @relation("developments")
+    developments_iw_comparedTo Development[]         @relation("developments_iw_comparedTo")
+    recordVaguePositions       RecordVaguePosition[]
+}
+
+/// Level F (chain of 5 foreign keys)
+
+model RecordSource {
+    id Int @id @default(autoincrement())
+
+    source   Source @relation(fields: [sourceId], references: [id])
+    sourceId Int
+    record   Record @relation(fields: [recordId], references: [id])
+    recordId Int
+}
+
+model Event {
+    id Int @id @default(autoincrement())
+
+    eventType   EventType @relation(fields: [eventTypeId], references: [id])
+    eventTypeId Int
+    record      Record    @relation(fields: [recordId], references: [id])
+    recordId    Int
+}
+
+model Development {
+    id   Int             @id @default(autoincrement())
+    type DevelopmentType
+    // addition    Boolean?
+    // removal     Boolean?
+    // all         Boolean?
+
+    feature             Feature @relation(fields: [featureId], references: [id])
+    featureId           Int
+    record              Record  @relation(name: "developments", fields: [recordId], references: [id])
+    recordId            Int
+    comparedTo_record   Record  @relation(name: "developments_iw_comparedTo", fields: [comparedTo_recordId], references: [id])
+    comparedTo_recordId Int
+}
+
+model RecordVaguePosition {
+    id         Int     @id @default(autoincrement())
+    confidence Decimal @db.Decimal(3, 2)
+    negative   Boolean
+
+    record          Record        @relation(fields: [recordId], references: [id])
+    recordId        Int
+    vaguePosition   VaguePosition @relation(fields: [vaguePositionId], references: [id])
+    vaguePositionId Int
+}
+
+enum DevelopmentType {
+    SAME
+    ADDED
+    ADDED_MORE
+    ADDED_ALL_EXPECTED
+    REMOVED_SOME
+    REMOVED_ALL
+}
+
+// enum SourceType {
+//     SECONDARY_TEXT /// should be default
+//     PRIMARY_TEXT
+//     STILL
+//     VIDEO
+//     LIVECAM
+// }
+
+// enum ArticleNameProvenance {
+//     OFFICIAL_LABELLED
+//     OFFICIAL_PUBLISHED
+//     INFERRED_FROM_OFFICIAL
+//     EDITORIAL               /// e.g. S1
+//     COMMUNITY
+// }
+
+// enum ArticleNameForm {
+//     LONG    /// e.g. Booster 2, Interstage 4
+//     SHORT_INC_N   /// e.g. BN2
+//     SHORT_EXC_N   /// e.g. B2
+//     EDITORIAL_DESIGNATION   /// e.g. B2, I4
+// }

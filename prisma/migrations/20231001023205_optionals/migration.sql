@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Scheme" ALTER COLUMN "diagramAsset2dURI" DROP NOT NULL,
+ALTER COLUMN "diagramAsset3dURI" DROP NOT NULL;
