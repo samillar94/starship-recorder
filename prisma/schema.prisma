@@ -13,7 +13,7 @@ datasource db {
 /// Notes
 /// Currently can't enforce one to mandatory many relationships
 
-/// Level A (no foreign keys)
+/// Level 1 (no foreign keys)
 
 model SourceType {
     id   Int    @id @default(autoincrement())
@@ -36,6 +36,7 @@ model NameProvenance {
 
     articleNames ArticleName[]
     partNames    PartName[]
+    ThingName    ThingName[]
 }
 
 model NameForm {
@@ -44,6 +45,7 @@ model NameForm {
 
     articleNames ArticleName[]
     partNames    PartName[]
+    ThingName    ThingName[]
 }
 
 model Article {
@@ -65,15 +67,6 @@ model Stand {
     groundElevationM Float?
 
     records Record[]
-}
-
-model ColorClass {
-    id          Int     @id @default(autoincrement())
-    name        String
-    description String?
-    colorTheme  String?
-
-    schemes Scheme[]
 }
 
 model Unit {
@@ -125,12 +118,48 @@ model Feature {
     name String @unique
 
     partFeatures PartFeature[]
-    developments Development[]
+}
+
+model Part {
+    id                Int     @id @default(autoincrement())
+    description       String  @unique
+    editorialCode     String?
+    rhinoAssetId      String?
+    markerAsset2dURI  String?
+    diagramAsset2dURI String?
+    diagramAsset3dURI String?
+
+    schemeParts              SchemePart[]
+    assignments              Assignment[]
+    records_iw_observed      Record[]
+    partFeatures             PartFeature[]
+    mates_iw_static          Mate[]        @relation("mates_iw_static")
+    mates_iw_added           Mate[]        @relation("mates_iw_added")
+    mates_iw_new             Mate[]        @relation("mates_iw_new")
+    abstractions_iw_generic  Abstraction[] @relation("abstractions_iw_generic")
+    abstractions_iw_specific Abstraction[] @relation("abstractions_iw_specific")
+    partUnits                PartUnit[]
+    partNames                PartName[]
+    Scheme                   Scheme?       @relation(fields: [schemeId], references: [id])
+    schemeId                 Int?
+    ThingName                ThingName[]
+}
+
+model Scheme {
+    id                Int         @id @default(autoincrement())
+    description       String      @unique
+    diagramAsset2dURI String?
+    diagramAsset3dURI String?
+    schemeClass       SchemeClass
+
+    articleVersions ArticleVersion[]
+    parts           Part[]
+    schemePart      SchemePart[]
 }
 
 //model CRSType
 
-/// Level B
+/// Level 2
 
 model Source {
     id         Int     @id @default(autoincrement())
@@ -161,17 +190,19 @@ model ArticleName {
     articleNameSources ArticleNameSource[]
 }
 
-model Scheme {
+model ArticleVersion {
     id                Int     @id @default(autoincrement())
-    description       String  @unique
-    diagramAsset2dURI String?
+    editorialSuffix   String  @default("")
     diagramAsset3dURI String?
 
-    colorClass   ColorClass @relation(fields: [colorClassId], references: [id])
-    colorClassId Int
+    article   Article @relation(fields: [articleId], references: [id])
+    articleId Int
+    scheme    Scheme? @relation(fields: [schemeId], references: [id])
+    schemeId  Int?
 
-    articleVersions ArticleVersion[]
-    parts           Part[]
+    assignments Assignment[]
+
+    @@unique([editorialSuffix, articleId])
 }
 
 model ArticleMirocard {
@@ -192,34 +223,6 @@ model ThingMirocard {
     mirocardId Int
 }
 
-//model CRS
-
-/// Level C
-
-model ArticleNameSource {
-    id Int @id @default(autoincrement())
-
-    source        Source      @relation(fields: [sourceId], references: [id])
-    sourceId      Int
-    articleName   ArticleName @relation(fields: [articleNameId], references: [id])
-    articleNameId Int
-}
-
-model ArticleVersion {
-    id                Int     @id @default(autoincrement())
-    editorialSuffix   String  @default("")
-    diagramAsset3dURI String?
-
-    article   Article @relation(fields: [articleId], references: [id])
-    articleId Int
-    scheme    Scheme? @relation(fields: [schemeId], references: [id])
-    schemeId  Int?
-
-    assignments Assignment[]
-
-    @@unique([editorialSuffix, articleId])
-}
-
 model SameThing {
     id         Int     @id @default(autoincrement())
     confidence Decimal @db.Decimal(3, 2)
@@ -230,77 +233,16 @@ model SameThing {
     thingId2 Int
 }
 
-model Part {
-    id                Int     @id @default(autoincrement())
-    description       String  @unique
-    editorialCode     String?
-    rhinoAssetId      String?
-    markerAsset2dURI  String?
-    diagramAsset2dURI String?
-    diagramAsset3dURI String?
+model ThingName {
+    id   Int    @id @default(autoincrement())
+    name String
 
-    scheme   Scheme? @relation(fields: [schemeId], references: [id])
-    schemeId Int?
-
-    assignments              Assignment[]
-    records_iw_observed      Record[]
-    partFeatures             PartFeature[]
-    mates_iw_static          Mate[]        @relation("mates_iw_static")
-    mates_iw_added           Mate[]        @relation("mates_iw_added")
-    mates_iw_new             Mate[]        @relation("mates_iw_new")
-    abstractions_iw_generic  Abstraction[] @relation("abstractions_iw_generic")
-    abstractions_iw_specific Abstraction[] @relation("abstractions_iw_specific")
-    partUnits                PartUnit[]
-    partNames                PartName[]
-}
-
-model Position {
-    id         Int      @id @default(autoincrement())
-    name       String?
-    r          Int?     @default(0)
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
-    //point Point
-    //z     Decimal
-
-    records Record[]
-}
-
-model VaguePosition {
-    id         Int      @id @default(autoincrement())
-    name       String?
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
-    // polygon Polygon
-
-    // crs     CRS
-    // crsId   int
-
-    recordFuzzes RecordVaguePosition[]
-}
-
-//model Coordinate
-
-/// Level D
-
-model Assignment {
-    id         Int      @id @default(autoincrement())
-    confidence Decimal  @db.Decimal(3, 2)
-    labelTexts String?  @db.Xml
-    c_when     DateTime @db.Timestamptz(0)
-
-    thing            Thing           @relation(fields: [thingId], references: [id])
+    thing            Part           @relation(fields: [thingId], references: [id])
     thingId          Int
-    articleVersion   ArticleVersion? @relation(fields: [articleVersionId], references: [id])
-    articleVersionId Int?
-    part             Part?           @relation(fields: [partId], references: [id])
-    partId           Int?
-
-    assignmentSources  AssignmentSource[]
-    records            Record[]           @relation("records")
-    records_iw_startOn Record[]           @relation("records_iw_startOn")
-    records_iw_endOn   Record[]           @relation("records_iw_endOn")
-    records_iw_newPart Record[]           @relation("records_iw_newPart")
+    nameProvenance   NameProvenance @relation(fields: [nameProvenanceId], references: [id])
+    nameProvenanceId Int
+    nameForm         NameForm       @relation(fields: [nameFormId], references: [id])
+    nameFormId       Int
 }
 
 model PartName {
@@ -323,6 +265,8 @@ model PartFeature {
     partId    Int?
     feature   Feature? @relation(fields: [featureId], references: [id])
     featureId Int?
+
+    developments Development[]
 }
 
 model PartUnit {
@@ -358,7 +302,76 @@ model Abstraction {
     specific_partId Int
 }
 
-/// Level E
+//model CRS
+
+/// Level 3
+
+model ArticleNameSource {
+    id Int @id @default(autoincrement())
+
+    source        Source      @relation(fields: [sourceId], references: [id])
+    sourceId      Int
+    articleName   ArticleName @relation(fields: [articleNameId], references: [id])
+    articleNameId Int
+}
+
+model SchemePart {
+    id Int @id @default(autoincrement())
+
+    scheme   Scheme? @relation(fields: [schemeId], references: [id])
+    schemeId Int?
+    part     Part?   @relation(fields: [partId], references: [id])
+    partId   Int?
+}
+
+model Assignment {
+    id         Int      @id @default(autoincrement())
+    confidence Decimal  @db.Decimal(3, 2)
+    labelTexts String?  @db.Xml
+    c_when     DateTime @db.Timestamptz(0)
+
+    thing            Thing           @relation(fields: [thingId], references: [id])
+    thingId          Int
+    articleVersion   ArticleVersion? @relation(fields: [articleVersionId], references: [id])
+    articleVersionId Int?
+    part             Part?           @relation(fields: [partId], references: [id])
+    partId           Int?
+
+    assignmentSources  AssignmentSource[]
+    records            Record[]           @relation("records")
+    records_iw_startOn Record[]           @relation("records_iw_startOn")
+    records_iw_endOn   Record[]           @relation("records_iw_endOn")
+    records_iw_newPart Record[]           @relation("records_iw_newPart")
+}
+
+model Position {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    r          Int?     @default(0)
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    //point Point
+    //z     Decimal
+
+    records Record[]
+}
+
+model VaguePosition {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    // polygon Polygon
+
+    // crs     CRS
+    // crsId   int
+
+    recordFuzzes RecordVaguePosition[]
+}
+
+//model Coordinate
+
+/// Level 4
 
 model AssignmentSource {
     id Int @id @default(autoincrement())
@@ -400,7 +413,7 @@ model Record {
     recordVaguePositions       RecordVaguePosition[]
 }
 
-/// Level F (chain of 5 foreign keys)
+/// Level 5 (chain of 4 foreign keys)
 
 model RecordSource {
     id Int @id @default(autoincrement())
@@ -427,11 +440,11 @@ model Development {
     // removal     Boolean?
     // all         Boolean?
 
-    feature             Feature @relation(fields: [featureId], references: [id])
-    featureId           Int
-    record              Record  @relation(name: "developments", fields: [recordId], references: [id])
+    partFeature         PartFeature @relation(fields: [partFeatureId], references: [id])
+    partFeatureId       Int
+    record              Record      @relation(name: "developments", fields: [recordId], references: [id])
     recordId            Int
-    comparedTo_record   Record  @relation(name: "developments_iw_comparedTo", fields: [comparedTo_recordId], references: [id])
+    comparedTo_record   Record      @relation(name: "developments_iw_comparedTo", fields: [comparedTo_recordId], references: [id])
     comparedTo_recordId Int
 }
 
@@ -444,6 +457,15 @@ model RecordVaguePosition {
     recordId        Int
     vaguePosition   VaguePosition @relation(fields: [vaguePositionId], references: [id])
     vaguePositionId Int
+}
+
+enum SchemeClass {
+    SHIP
+    STACK
+    SUPERHEAVY
+    SPECIAL
+    SERVICE
+    SOMETHING
 }
 
 enum DevelopmentType {

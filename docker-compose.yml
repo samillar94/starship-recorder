@@ -65,3 +65,7 @@ services:
 volumes:
   postgres-data:
   # pgadmin-data:
+
+# Sources
+# https://www.section.io/engineering-education/dockerized-prisma-postgres-api/#create-and-run-a-prisma-server-with-docker
+# https://hub.docker.com/r/timothyjmiller/prisma-studio

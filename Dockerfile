@@ -13,4 +13,8 @@ RUN npx prisma generate
 
 EXPOSE 3000
 
-CMD npm run migrate:start:studio
+CMD npm run start
+
+# Sources
+# https://www.section.io/engineering-education/dockerized-prisma-postgres-api/#create-and-run-a-prisma-server-with-docker
+# https://notiz.dev/blog/prisma-migrate-deploy-with-docker
