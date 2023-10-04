@@ -73,7 +73,7 @@ model Unit {
     id               Int     @id @default(autoincrement())
     editorialCode    String  @unique
     description      String  @unique
-    displayOrder     String  @unique
+    displayOrder     Int     @unique
     displayedInCombo Boolean
 
     partUnits PartUnit[]
@@ -100,10 +100,10 @@ model Thing {
     id      Int     @id @default(autoincrement())
     summary String?
 
-    assignments     Assignment[]
     sameThings_iw_1 SameThing[]     @relation("sameThings_iw_1")
     sameThings_iw_2 SameThing[]     @relation("sameThings_iw_2")
     thingMiroCards  ThingMirocard[]
+    VagueRole       VagueRole[]
 }
 
 model EventType {
@@ -130,7 +130,7 @@ model Part {
     diagramAsset3dURI String?
 
     schemeParts              SchemePart[]
-    assignments              Assignment[]
+    roles                    Role[]
     records_iw_observed      Record[]
     partFeatures             PartFeature[]
     mates_iw_static          Mate[]        @relation("mates_iw_static")
@@ -157,6 +157,46 @@ model Scheme {
     schemePart      SchemePart[]
 }
 
+model Position {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    r          Int?     @default(0)
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    //point Point
+    //z     Decimal
+
+    records Record[]
+}
+
+model VaguePosition {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    validStart DateTime @db.Date
+    validEnd   DateTime @db.Date
+    // polygon Polygon
+
+    // crs     CRS
+    // crsId   int
+
+    recordVaguePositions RecordVaguePosition[]
+}
+
+model VagueRole {
+    id         Int       @id @default(autoincrement())
+    c_when     DateTime? @db.Timestamptz(0)
+    labelTexts String?   @db.Xml
+
+    thing   Thing @relation(fields: [thingId], references: [id])
+    thingId Int
+
+    roles                Role[]
+    records              Record[] @relation("records")
+    records_iw_startOn   Record[] @relation("records_iw_startOn")
+    records_iw_endOn     Record[] @relation("records_iw_endOn")
+    records_iw_resulting Record[] @relation("records_iw_resulting")
+}
+
 //model CRSType
 
 /// Level 2
@@ -172,7 +212,7 @@ model Source {
     creditId     Int
 
     articleNameSources ArticleNameSource[]
-    assignmentSources  AssignmentSource[]
+    roleSources        RoleSource[]
     recordSources      RecordSource[]
 }
 
@@ -200,7 +240,7 @@ model ArticleVersion {
     scheme    Scheme? @relation(fields: [schemeId], references: [id])
     schemeId  Int?
 
-    assignments Assignment[]
+    roles Role[]
 
     @@unique([editorialSuffix, articleId])
 }
@@ -302,6 +342,15 @@ model Abstraction {
     specific_partId Int
 }
 
+model SchemePart {
+    id Int @id @default(autoincrement())
+
+    scheme   Scheme? @relation(fields: [schemeId], references: [id])
+    schemeId Int?
+    part     Part?   @relation(fields: [partId], references: [id])
+    partId   Int?
+}
+
 //model CRS
 
 /// Level 3
@@ -315,71 +364,18 @@ model ArticleNameSource {
     articleNameId Int
 }
 
-model SchemePart {
-    id Int @id @default(autoincrement())
+model Role {
+    id         Int     @id @default(autoincrement())
+    confidence Decimal @db.Decimal(3, 2)
 
-    scheme   Scheme? @relation(fields: [schemeId], references: [id])
-    schemeId Int?
-    part     Part?   @relation(fields: [partId], references: [id])
-    partId   Int?
-}
-
-model Assignment {
-    id         Int      @id @default(autoincrement())
-    confidence Decimal  @db.Decimal(3, 2)
-    labelTexts String?  @db.Xml
-    c_when     DateTime @db.Timestamptz(0)
-
-    thing            Thing           @relation(fields: [thingId], references: [id])
-    thingId          Int
+    vagueRole        VagueRole       @relation(fields: [vagueRoleId], references: [id])
+    vagueRoleId      Int
     articleVersion   ArticleVersion? @relation(fields: [articleVersionId], references: [id])
     articleVersionId Int?
     part             Part?           @relation(fields: [partId], references: [id])
     partId           Int?
 
-    assignmentSources  AssignmentSource[]
-    records            Record[]           @relation("records")
-    records_iw_startOn Record[]           @relation("records_iw_startOn")
-    records_iw_endOn   Record[]           @relation("records_iw_endOn")
-    records_iw_newPart Record[]           @relation("records_iw_newPart")
-}
-
-model Position {
-    id         Int      @id @default(autoincrement())
-    name       String?
-    r          Int?     @default(0)
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
-    //point Point
-    //z     Decimal
-
-    records Record[]
-}
-
-model VaguePosition {
-    id         Int      @id @default(autoincrement())
-    name       String?
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
-    // polygon Polygon
-
-    // crs     CRS
-    // crsId   int
-
-    recordFuzzes RecordVaguePosition[]
-}
-
-//model Coordinate
-
-/// Level 4
-
-model AssignmentSource {
-    id Int @id @default(autoincrement())
-
-    source       Source     @relation(fields: [sourceId], references: [id])
-    sourceId     Int
-    assignment   Assignment @relation(fields: [assignmentId], references: [id])
-    assignmentId Int
+    roleSources RoleSource[]
 }
 
 model Record {
@@ -391,20 +387,20 @@ model Record {
     live         Boolean
     note         String?
 
-    assignment           Assignment  @relation(name: "records", fields: [assignmentId], references: [id])
-    assignmentId         Int
-    startOn_assignment   Assignment? @relation(name: "records_iw_startOn", fields: [startOn_assignmentId], references: [id])
-    startOn_assignmentId Int?
-    endOn_assignment     Assignment? @relation(name: "records_iw_endOn", fields: [endOn_assignmentId], references: [id])
-    endOn_assignmentId   Int?
-    newPart_assignment   Assignment? @relation(name: "records_iw_newPart", fields: [newPart_assignmentId], references: [id])
-    newPart_assignmentId Int?
-    observed_part        Part?       @relation(fields: [observed_partId], references: [id])
-    observed_partId      Int?
-    stand                Stand?      @relation(fields: [standId], references: [id])
-    standId              Int?
-    position             Position    @relation(fields: [positionId], references: [id])
-    positionId           Int
+    vagueRole             VagueRole  @relation(name: "records", fields: [vagueRoleId], references: [id])
+    vagueRoleId           Int
+    startOn_vagueRole     VagueRole? @relation(name: "records_iw_startOn", fields: [startOn_vagueRoleId], references: [id])
+    startOn_vagueRoleId   Int?
+    endOn_vagueRole       VagueRole? @relation(name: "records_iw_endOn", fields: [endOn_vagueRoleId], references: [id])
+    endOn_vagueRoleId     Int?
+    resulting_vagueRole   VagueRole? @relation(name: "records_iw_resulting", fields: [resulting_vagueRoleId], references: [id])
+    resulting_vagueRoleId Int?
+    observed_part         Part?      @relation(fields: [observed_partId], references: [id])
+    observed_partId       Int?
+    stand                 Stand?     @relation(fields: [standId], references: [id])
+    standId               Int?
+    position              Position   @relation(fields: [positionId], references: [id])
+    positionId            Int
 
     recordSources              RecordSource[]
     events                     Event[]
@@ -413,7 +409,16 @@ model Record {
     recordVaguePositions       RecordVaguePosition[]
 }
 
-/// Level 5 (chain of 4 foreign keys)
+/// Level 4 (chain of 3 foreign keys)
+
+model RoleSource {
+    id Int @id @default(autoincrement())
+
+    source   Source @relation(fields: [sourceId], references: [id])
+    sourceId Int
+    role     Role   @relation(fields: [roleId], references: [id])
+    roleId   Int
+}
 
 model RecordSource {
     id Int @id @default(autoincrement())
