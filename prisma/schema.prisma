@@ -205,6 +205,7 @@ model Source {
     id         Int     @id @default(autoincrement())
     mediaURI   String
     commentary String?
+    restricted Boolean @default(false)
 
     sourceType   SourceType @relation(fields: [sourceTypeId], references: [id])
     sourceTypeId Int

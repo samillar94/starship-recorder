@@ -112,63 +112,72 @@ async function addFirstHoppyRecord() {
   //   },
   // });
 
-  let article = await prisma.article.create({
+  let articleVersion_S0_v1 = await prisma.articleVersion.create({
     data: {
-      editorialLetter: "S",
-      editorialNumber: "0",
-      articleNames: {
+      editorialSuffix: "v1",
+      scheme: {
         create: {
-          name: "Starhopper",
-          nameProvenance: {
+          description:
+            "Starhopper's publicity build - the 3-legged 5-ring tank assembly with only the aft dome had the 4-ring nosecone assembly stacked on and destacked from it twice before 50mph winds knocked it over.",
+          schemeClass: "SPECIAL",
+        },
+      },
+      article: {
+        create: {
+          editorialLetter: "S",
+          editorialNumber: "0",
+          articleNames: {
             create: {
-              type: "official published",
-            },
-          },
-          nameForm: {
-            create: {
-              type: "long",
+              name: "Starhopper",
+              nameProvenance: {
+                create: {
+                  type: "official published",
+                },
+              },
+              nameForm: {
+                create: {
+                  type: "long",
+                },
+              },
             },
           },
         },
       },
-      articleVersions: {
-        create: {
-          editorialSuffix: "v1",
-          scheme: {
-            create: {
-              description:
-                "Starhopper's publicity build - the 3-legged 5-ring tank assembly with only the aft dome had the 4-ring nosecone assembly stacked on and destacked from it twice before 50mph winds knocked it over.",
-              schemeClass: "SPECIAL",
-            },
-          },
-          // assignments: {
-          //   create: {
-          //     thing: {
-          //       create: {},
-          //     },
-          //     confidence: 1,
-          //     // partId: part_A_5h_or_TS_5h.id, /// no idea why this won't accept existing IDs
-          //     part: {
-          //       create: {
-          //         description:
-          //           "Hoppy tank barrel - barrel made from 5 Hoppy-style rings - can't tell if the aft dome is installed or not",
-          //         editorialCode: "/",
-          //         abstractions_iw_generic: {
-          //           create: [
-          //             {
-          //               specific_partId: part_TS_5h.id,
-          //             },
-          //             {
-          //               specific_partId: part_A_5h.id,
-          //             },
-          //           ],
-          //         },
-          //       },
-          //     },
-          //   },
-          // },
-        },
-      },
+      // assignments: {
+      //   create: {
+      //     thing: {
+      //       create: {},
+      //     },
+      //     confidence: 1,
+      //     // partId: part_A_5h_or_TS_5h.id, /// no idea why this won't accept existing IDs
+      //     part: {
+      //       create: {
+      //         description:
+      //           "Hoppy tank barrel - barrel made from 5 Hoppy-style rings - can't tell if the aft dome is installed or not",
+      //         editorialCode: "/",
+      //         abstractions_iw_generic: {
+      //           create: [
+      //             {
+      //               specific_partId: part_TS_5h.id,
+      //             },
+      //             {
+      //               specific_partId: part_A_5h.id,
+      //             },
+      //           ],
+      //         },
+      //       },
+      //     },
+      //   },
+      // },
     },
   });
+
+  // let source_1 = prisma.source.create({
+  //   data: {
+  //     mediaURI:
+  //       "https://forum.nasaspaceflight.com/index.php?topic=46406.msg1888125#msg1888125",
+  //     commentary: "Mary's earliest shot of Hoppy, on 14 Dec 2018",
+  //     restricted: false,
+  //   },
+  // });
 }
