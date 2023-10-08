@@ -161,8 +161,8 @@ model Position {
     id         Int      @id @default(autoincrement())
     name       String?
     r          Int?     @default(0)
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
+    validStart DateTime? @db.Date
+    validEnd   DateTime? @db.Date
     //point Point
     //z     Decimal
 
@@ -381,7 +381,7 @@ model Role {
 
 model Record {
     id           Int      @id @default(autoincrement())
-    when         DateTime @db.Timestamptz(0)
+    when         DateTime? @db.Timestamptz(0)
     earliest     DateTime @db.Timestamptz(0)
     latest       DateTime @db.Timestamptz(0)
     smoothToNext Boolean
