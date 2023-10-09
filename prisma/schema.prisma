@@ -11,7 +11,7 @@ datasource db {
 }
 
 /// Notes
-/// Currently can't enforce one to mandatory many relationships
+/// Currently can't enforce one to mandatory one/many relationships
 
 /// Level 1 (no foreign keys)
 
@@ -172,8 +172,8 @@ model Position {
 model VaguePosition {
     id         Int      @id @default(autoincrement())
     name       String?
-    validStart DateTime @db.Date
-    validEnd   DateTime @db.Date
+    validStart DateTime? @db.Date
+    validEnd   DateTime? @db.Date
     // polygon Polygon
 
     // crs     CRS
