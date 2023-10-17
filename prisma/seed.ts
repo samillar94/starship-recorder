@@ -57,7 +57,7 @@ async function addFirstData() {
   let unit_f = await prisma.unit.create({
     data: {
       editorialCode: "f",
-      description: "Hoppy fairing-type cylinder ring",
+      description: "Hoppy fairing-type cylinder ring constructed from a frame",
       displayOrder: 9,
       displayedInCombo: true,
     },
@@ -279,7 +279,7 @@ async function addFirstData() {
   let source_6 = await prisma.source.create({
     data: {
       mediaURI:
-        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1890748#msg1890748",
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1890837#msg1890837",
       commentary:
         "Addition of an upper leg strut and a frame ring (possibly a fit check), 21 Dec 2018",
       restricted: false,
@@ -291,12 +291,69 @@ async function addFirstData() {
   let source_7 = await prisma.source.create({
     data: {
       mediaURI:
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1890838#msg1890838",
+      commentary: "Base cone stack grows, 21 Dec 2018",
+      restricted: false,
+      sourceType: { connect: { id: sourcetype_visual_recording.id } },
+      credit: { connect: { id: credit_mary.id } },
+    },
+  });
+
+  let source_8 = await prisma.source.create({
+    data: {
+      mediaURI:
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1891167#msg1891167",
+      commentary:
+        "Hoppy, the nose tip stack in the onion dome, and a ring frame, 22 Dec 2018",
+      restricted: false,
+      sourceType: { connect: { id: sourcetype_visual_recording.id } },
+      credit: { connect: { id: credit_mary.id } },
+    },
+  });
+
+  let source_9 = await prisma.source.create({
+    data: {
+      mediaURI:
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1891175#msg1891175",
+      commentary: "Nose tip, mid and base stacks, 22 Dec 2018",
+      restricted: false,
+      sourceType: { connect: { id: sourcetype_visual_recording.id } },
+      credit: { connect: { id: credit_mary.id } },
+    },
+  });
+
+  let source_spadre_1 = await prisma.source.create({
+    data: {
+      mediaURI:
         "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1891123#msg1891123",
       commentary:
         "SPadre video and photos showing all upper leg struts added, and the top of a nosecone is in the onion dome, 22 Dec 2018",
       restricted: false,
       sourceType: { connect: { id: sourcetype_visual_recording.id } },
       credit: { connect: { id: credit_spadre.id } },
+    },
+  });
+
+  let source_10 = await prisma.source.create({
+    data: {
+      mediaURI:
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1891723#msg1891723",
+      commentary:
+        "Nose tip leaves the tent to join the mid and base stacks, 23 Dec 2018",
+      restricted: false,
+      sourceType: { connect: { id: sourcetype_visual_recording.id } },
+      credit: { connect: { id: credit_mary.id } },
+    },
+  });
+
+  let source_11 = await prisma.source.create({
+    data: {
+      mediaURI:
+        "https://forum.nasaspaceflight.com/index.php?topic=47001.msg1891824#msg1891824",
+      commentary: "Nose tip and mid stacks mated, 23 Dec 2018",
+      restricted: false,
+      sourceType: { connect: { id: sourcetype_visual_recording.id } },
+      credit: { connect: { id: credit_mary.id } },
     },
   });
 

@@ -314,6 +314,7 @@ model PartUnit {
     id          Int @id @default(autoincrement())
     numerator   Int
     denominator Int @default(1)
+    subunit     String?
 
     part   Part @relation(fields: [partId], references: [id])
     partId Int
