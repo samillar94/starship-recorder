@@ -100,10 +100,11 @@ model Thing {
     id      Int     @id @default(autoincrement())
     summary String?
 
+    thingNames  ThingName[]
     sameThings_iw_1 SameThing[]     @relation("sameThings_iw_1")
     sameThings_iw_2 SameThing[]     @relation("sameThings_iw_2")
     thingMiroCards  ThingMirocard[]
-    VagueRole       VagueRole[]
+    vagueRoles       VagueRole[]
 }
 
 model EventType {
@@ -142,7 +143,6 @@ model Part {
     partNames                PartName[]
     Scheme                   Scheme?       @relation(fields: [schemeId], references: [id])
     schemeId                 Int?
-    ThingName                ThingName[]
 }
 
 model Scheme {
@@ -159,11 +159,14 @@ model Scheme {
 
 model Position {
     id         Int      @id @default(autoincrement())
+    precise Boolean @default(false)
     name       String?
     r          Int?     @default(0)
     validStart DateTime? @db.Date
     validEnd   DateTime? @db.Date
-    //point Point
+    x Decimal @default(-97.18821)
+    y Decimal @default(25.8022)
+    epsg Int @default(4326)
     //z     Decimal
 
     records Record[]
@@ -278,7 +281,7 @@ model ThingName {
     id   Int    @id @default(autoincrement())
     name String
 
-    thing            Part           @relation(fields: [thingId], references: [id])
+    thing            Thing           @relation(fields: [thingId], references: [id])
     thingId          Int
     nameProvenance   NameProvenance @relation(fields: [nameProvenanceId], references: [id])
     nameProvenanceId Int
