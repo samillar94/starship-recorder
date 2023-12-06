@@ -370,6 +370,8 @@ async function addFirstData() {
     data: {
       name: "Hoppyseat",
       validStart: new Date(2018, 11, 14),
+      x: -97.18629,
+      y: 25.98621,
     },
   });
 

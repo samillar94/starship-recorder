@@ -18,6 +18,7 @@ type ThingInViewData = {
 //TODO filter by bounding box and time
 export const getThingsInView = async (req: Request, res: Response) => {
   try {
+    console.log(req);
     const thingsInView = await thingClient.findMany({
       select: {
         id: true,
@@ -47,6 +48,9 @@ export const getThingsInView = async (req: Request, res: Response) => {
                 part: {
                   include: {
                     partUnits: {
+                      orderBy: {
+                        unit: { displayOrder: "asc" },
+                      },
                       select: {
                         numerator: true,
                         denominator: true,

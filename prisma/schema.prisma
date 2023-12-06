@@ -165,7 +165,7 @@ model Position {
     validStart DateTime? @db.Date
     validEnd   DateTime? @db.Date
     x Decimal @default(-97.18821)
-    y Decimal @default(25.8022)
+    y Decimal @default(25.98022)
     epsg Int @default(4326)
     //z     Decimal
 
