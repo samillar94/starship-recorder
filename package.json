@@ -5,10 +5,10 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npm run migrate:seed:server:studio",
-    "migrate:seed:server:studio": "prisma migrate deploy && npm run seed:server:studio",
-    "seed:server:studio": "prisma db seed && npm run server:studio",
-    "server:studio": "ts-node index.ts && npm run studio",
+    "start": "npm run migrate && npm run seed && npm run server && npm run studio",
+    "migrate": "prisma migrate deploy",
+    "seed": "prisma db seed",
+    "server": "ts-node index.ts",
     "studio": "prisma studio"
   },
   "keywords": [],

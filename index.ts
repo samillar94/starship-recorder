@@ -19,32 +19,16 @@ app.use(express.urlencoded({ extended: true }));
 
 /// route handler
 const routeFiles = fs
-  .readdirSync("./routes")
+  .readdirSync("./src/routes")
   .filter((file) => file.endsWith(".ts") && !file.startsWith("_"));
 for (const file of routeFiles) {
-  const route = require(`./routes/${file}`);
+  const route = require(`./src/routes/${file}`);
   app.use(`/${file.slice(0, -10)}`, route);
 }
-import testRoute from "./routes/_test.router";
+import testRoute from "./src/routes/_test.router";
 app.use(`/`, testRoute);
 
-/// ROUTES
-
-app.get("/records", async (_rep: Request, res: Response) => {
-  try {
-    const allRecords = await prisma.record.findMany();
-    return res.json({
-      success: true,
-      data: allRecords,
-    });
-  } catch (error) {
-    return res.json({
-      success: false,
-      message: error,
-    });
-  }
-});
-
+/// up
 app.listen(port, () => {
   console.log(`Server is running on at http://localhost:${port}`);
 });
